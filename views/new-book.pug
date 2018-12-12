@@ -1,0 +1,34 @@
+extends layout
+
+block content
+    body
+        h1 New Book
+        if errors
+            p(class="error") There was an error creating this book.
+        form(action="/books", method="post")
+            p
+                if errors
+                    each message in errors.title.msg
+                        p(class="field-error") #{message}
+                label(for='title') Title
+                input#title(name="title" type='text' value=book.title)
+            p
+                if errors
+                    each message in errors.author.msg
+                        p(class="field-error") #{message}
+                label(for='author') Author
+                input#author(name="author" type='text' value=book.author)
+            p
+                if errors
+                    each message in errors.genre.msg
+                        p(class="field-error") #{message}
+                label(for='genre') Genre
+                input#genre(name="genre" type='text' value=book.genre)
+            p
+                if errors
+                    each message in errors.firstPublished.msg
+                        p(class="field-error") #{message}
+                label(for='first_published') First Published
+                input#first_published(name="first_published" type='text' value=book.first_published)
+            p
+                input(type='submit', value='Create New Book')

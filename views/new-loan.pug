@@ -1,0 +1,40 @@
+extends layout 
+
+block content 
+    body
+    h1 New Loan
+    if errors 
+      p(class="error") There was an error creating this loan.
+    form(action="/loans" method="post")
+      p
+        if errors
+          each message in errors.book.msg 
+            p(class="field-error") #{message}
+        label(for='book_id') Book
+        select#book_id(name="book_id")
+          option(value=null)
+          each book in books
+            option(value=book.id) #{book.title}
+      p
+        if errors
+          each message in errors.patron.msg 
+            p(class="field-error") #{message}
+        label(for='patron_id') Patron
+        select#patron_id(name="patron_id")
+          option(value=null) 
+          each patron in patrons
+            option(value=patron.id) #{patron.first_name} #{patron.last_name}
+      p
+        if errors
+          each message in errors.loanedOn.msg 
+            p(class="field-error") #{message}
+        label(for='loaned_on') Loaned on:
+        input#loaned_on(type='text', name="loaned_on", value=loanedOn)
+      p
+        if errors
+          each message in errors.returnBy.msg 
+            p(class="field-error") #{message}
+        label(for='return_by') Return by:
+        input#return_by(type='text', name="return_by", value=returnBy)
+      p
+        input(type='submit', value='Create New Loan')
