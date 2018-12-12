@@ -21,9 +21,19 @@ const detailsQuery = {
 }
 
 router.get('/', function(req, res, next) {
-    Patrons.findAll(query).then( patrons => {
-        res.render('patrons', { patrons });
-    })
+    const page = req.query.page ? req.query.page : 1;
+    const numPerPage = 10;
+    const offset = (page - 1) * numPerPage;
+    let totalPatrons;
+    query.offset = offset;
+    query.limit = numPerPage;
+    Patrons.findAll().then( patrons => {
+        totalPatrons = patrons.length;
+    }).then( () => {
+        Patrons.findAll(query).then( patrons => {
+        res.render('patrons', { patrons, currentPage: page, numPerPage, totalPatrons});
+      })
+    });
 });
 
 // New Patron

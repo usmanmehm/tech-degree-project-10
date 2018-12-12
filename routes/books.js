@@ -66,19 +66,30 @@ const detailsQuery = {
 
 // All Books
 router.get('/', function(req, res, next) {
+    
+    // Pagination
+    const page = req.query.page ? req.query.page : 1;
+    const numPerPage = 10;
+    const offset = (page - 1) * numPerPage;
+    let totalBooks;
+    query.offset = offset;
+    query.limit = numPerPage;
 
     // Overdue Books
     if(req.query.filter === "overdue") {
         Loans.findAll(overdueLoans)
             .then( loans => {
                 const bookIds = loans.map( loan => loan.book_id);
+                totalBooks = bookIds.length;
                 overdueBooks.where.id = {
                     [Op.in]: bookIds
                 };
+                overdueBooks.offset = offset;
+                overdueBooks.limit = numPerPage;
                 return Books.findAll(overdueBooks);
             })
             .then( books => {
-                res.render('books', { books });
+                res.render('books', { books, currentPage: page, totalBooks, numPerPage });
             });
     } 
 
@@ -87,20 +98,27 @@ router.get('/', function(req, res, next) {
         Loans.findAll(checkedLoans)
             .then( loans => {
                 const bookIds = loans.map( loan => loan.book_id);
+                totalBooks = bookIds.length;
                 checkedBooks.where.id = {
                     [Op.in]: bookIds
                 };
+                checkedBooks.offset = offset;
+                checkedBooks.limit = numPerPage;
                 return Books.findAll(checkedBooks);
             })
             .then( books => {
-                res.render('books', { books });
+                res.render('books', { books, currentPage: page, totalBooks, numPerPage });
             })
     } 
 
     // All Books
     else {
-        Books.findAll(query).then( books => {
-            res.render('books', { books });
+        Books.findAll().then( books => {
+            totalBooks = books.length;
+        }).then( () => {
+            Books.findAll(query).then( books => {
+                res.render('books', { books, currentPage: page, totalBooks, numPerPage });
+            })
         })
     }
 });

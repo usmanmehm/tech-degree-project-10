@@ -1,6 +1,9 @@
+@import "bootstrap.css";
+
 body {
   padding: 50px;
   font: 18px "Garamond", serif;
+  width: 80%;
 }
 a {
   color: #019875;
@@ -109,4 +112,16 @@ input[type=text], select {
   color: red;
   font-size: 16px;
   font-weight: bold;
+}
+
+.pagination {
+  padding-top: 16px;
+}
+
+.page-item.active .page-link{
+  background-color: #019875;
+}
+
+.page-link {
+  color: #019875;
 }

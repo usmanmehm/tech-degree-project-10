@@ -27,4 +27,11 @@ block content
             td #{book.author}
             td #{book.genre}
             td #{book.first_published}
+    ul.pagination.justify-content-center
+        - for(var i = 0; i < totalBooks/numPerPage; i++)
+            - var page = i + 1;
+            - var active = page == currentPage ? "active" : "";
+            li(class="page-item " + active)
+                a.page-link(href="/books?page=" + page)
+                  =page
         
