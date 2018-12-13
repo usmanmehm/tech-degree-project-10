@@ -111,11 +111,11 @@ router.get('/new', function(req, res, next) {
     })
 });
 
+// POST request with new loan details
 router.post('/', (req, res, next) => {
     Loans.create(req.body).then( () => {
         res.redirect('/loans');
     }).catch( err => {
-        // This is the error being specified when we submit with fields being blank
         if(err.name === "SequelizeValidationError") {
             const errorMessages = err.message.split("Validation error:");
 
@@ -147,12 +147,14 @@ router.post('/', (req, res, next) => {
     })
 });
 
+// Page that will confirm that the book is being returned
 router.get('/return/:id', (req, res) => {
     Loans.findByPk(req.params.id, loanOptions).then( loan => {
         res.render('return', { loan, today })
     })
 })
 
+// This will officially state the book as returned
 router.put('/return/:id', (req,res) => {
     Loans.findByPk(req.params.id).then( loan => {
         loan.update({ returned_on: new Date() });
