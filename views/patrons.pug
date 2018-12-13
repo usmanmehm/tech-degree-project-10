@@ -5,6 +5,11 @@ block content
     h1 Patrons
     p
       a.button(href='/patrons/new') Create New Patron
+
+    form.form-inline.md-form.form-sm.mt-0
+      input.form-control.form-control-sm.ml-3.w-50(name="q" type="text" placeholder="Search for Name, Address or Library ID" aria-label="Search")
+      input.search(type='submit' value='Search')
+    br
     table
       thead
         tr
@@ -30,6 +35,7 @@ block content
         - for(var i = 0; i < totalPatrons/numPerPage; i++)
             - var page = i + 1;
             - var active = page == currentPage ? "active" : "";
+            - var query = q ? "&q="+ q : "";
             li(class="page-item " + active)
-                a.page-link(href="/patrons?page=" + page)
+                a.page-link(href="/patrons?page=" + page + query)
                   =page

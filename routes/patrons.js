@@ -5,13 +5,19 @@ const Patrons = require('../models').Patrons;
 const Loans = require('../models').Loans;
 const Books = require('../models').Books;
 
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
+
 // Create association
 Patrons.hasMany(Loans, { foreignKey: 'patron_id' });
 
+// Queries
+// Default Query
 const query = {
     attributes: ["id", "first_name", "last_name", "address", "email", "library_id", "zip_code"]
 }
 
+// Query for patron details page
 const detailsQuery = {
     attributes: query.attributes,
     include: {
@@ -21,17 +27,38 @@ const detailsQuery = {
 }
 
 router.get('/', function(req, res, next) {
+    // Pagination variables
     const page = req.query.page ? req.query.page : 1;
     const numPerPage = 10;
     const offset = (page - 1) * numPerPage;
     let totalPatrons;
-    query.offset = offset;
-    query.limit = numPerPage;
-    Patrons.findAll().then( patrons => {
-        totalPatrons = patrons.length;
+
+    // Search related variables
+    let q;
+    query.offset = 0;
+    query.limit = 1000; // setting this so that when using search, there is no limit on the books returned
+    if(req.query.q) {
+        q = req.query.q;
+        query.where = {
+            [Op.or]: {
+                first_name: { [Op.like]: "%" + q + "%" },
+                last_name: { [Op.like]: "%" + q + "%" },
+                address: { [Op.like]: "%" + q + "%" },
+                library_id: { [Op.like]: "%" + q + "%" }
+            }
+        }
+    } else {
+        query.where = {};
+    }
+
+    // Querying the Database
+    Patrons.findAll(query).then( patrons => {
+        totalPatrons = patrons.length; // for page numbers
+        query.offset = offset; // to offset and limit the number of results to display
+        query.limit = numPerPage;
     }).then( () => {
         Patrons.findAll(query).then( patrons => {
-        res.render('patrons', { patrons, currentPage: page, numPerPage, totalPatrons});
+        res.render('patrons', { patrons, currentPage: page, numPerPage, totalPatrons, q });
       })
     });
 });
@@ -77,7 +104,7 @@ router.post('/', (req, res, next) => {
 })
 
 // Patron Details
-let patronDetails;
+let patronDetails; // this variable is in place in case of an error - we won't lose the patron information
 router.get('/details/:id', function(req, res, next) {
     const id = req.params.id;
     Patrons.findById(id, detailsQuery).then ( patron => {
@@ -130,6 +157,8 @@ router.get('/delete/:id', (req, res) => {
 })
 
 router.put('/delete/:id', (req, res) => {
+    // in case someone moves, has violated library terms, etc... we would want to delete them
+    // we want to delete the patron, and the loans associated with that patron
     Loans.findAll( { where: { patron_id: req.params.id }} ).then( loans => {
         loans.map( loan => {
             loan.destroy( { force: true });

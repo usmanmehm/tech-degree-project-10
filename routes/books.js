@@ -11,11 +11,14 @@ const Op = Sequelize.Op;
 // Create association
 Books.hasMany(Loans, { foreignKey: 'book_id' });
 
+// Queries
 
+//Default Query
 const query = {
     attributes: [ "id", "title", "author", "genre", "first_published"]
 };
 
+// Different Queries for different filters
 const overdueLoans = {
     attributes: [ "book_id" ],
     where: {
@@ -67,13 +70,11 @@ const detailsQuery = {
 // All Books
 router.get('/', function(req, res, next) {
     
-    // Pagination
+    // Pagination variables
     const page = req.query.page ? req.query.page : 1;
     const numPerPage = 10;
     const offset = (page - 1) * numPerPage;
     let totalBooks;
-    query.offset = offset;
-    query.limit = numPerPage;
 
     // Overdue Books
     if(req.query.filter === "overdue") {
@@ -113,11 +114,32 @@ router.get('/', function(req, res, next) {
 
     // All Books
     else {
-        Books.findAll().then( books => {
-            totalBooks = books.length;
+        // Search related variables
+        const displayAll = true;
+        let q;
+        query.offset = 0;
+        query.limit = 1000; // setting this so that when using search, there is no limit on the books returned
+        if(req.query.q) {
+            q = req.query.q;
+            query.where = {
+                [Op.or]: {
+                    title: { [Op.like]: "%" + q + "%" },
+                    author: { [Op.like]: "%" + q + "%" },
+                    genre: { [Op.like]: "%" + q + "%" }
+                }
+            }
+        } else {
+            query.where = {};
+        }
+
+        // Querying the database
+        Books.findAll(query).then( books => {
+            totalBooks = books.length; // for accurate page numbers
+            query.offset = offset; // setting a limit to the results displayed
+            query.limit = numPerPage;
         }).then( () => {
             Books.findAll(query).then( books => {
-                res.render('books', { books, currentPage: page, totalBooks, numPerPage });
+                res.render('books', { books, currentPage: page, totalBooks, numPerPage, q, displayAll });
             })
         })
     }
@@ -134,6 +156,7 @@ router.post('/', (req, res, next) => {
         res.redirect('/books');
     }).catch( err => {
         if(err.name === "SequelizeValidationError") {
+            // We want an array of the messages split by every instance of "Validation error"
             const errorMessages = err.message.split("Validation error:");
 
             const errors = {
@@ -159,7 +182,7 @@ router.post('/', (req, res, next) => {
 })
 
 // Book Details
-let bookDetails; // this variable is assigned here and used in PUT method update below
+let bookDetails; // this variable will store all the book details in case there is an error - we won't lose the info
 router.get('/details/:id', (req, res) => {
     const id = req.params.id;
     Books.findByPk(id, detailsQuery).then( book => {

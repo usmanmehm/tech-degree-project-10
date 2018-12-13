@@ -1,6 +1,9 @@
 extends layout
 
 block content
+    //- //- - var filterQuery = filter ? `&filter=` + filter : '';
+    //- - var qQuery = q ? '&q=' + q : '';
+    //- - var pageQuery = page ? '&page=' + page;
     body
     h1 Books
     p
@@ -12,6 +15,12 @@ block content
       a(href='/books?filter=overdue') Overdue
       |  
       a(href='/books?filter=checked_out') Checked Out
+      
+    if displayAll
+      form.form-inline.md-form.form-sm.mt-0
+        input.form-control.form-control-sm.ml-3.w-50(name="q" type="text" placeholder="Search for title, author, genre" aria-label="Search")
+        input.search(type='submit' value='Search')
+    br
     table
       thead
         tr
@@ -31,7 +40,8 @@ block content
         - for(var i = 0; i < totalBooks/numPerPage; i++)
             - var page = i + 1;
             - var active = page == currentPage ? "active" : "";
+            - var query = q ? "&q="+ q : "";
             li(class="page-item " + active)
-                a.page-link(href="/books?page=" + page)
+                a.page-link(href="/books?page=" + page + query)
                   =page
         

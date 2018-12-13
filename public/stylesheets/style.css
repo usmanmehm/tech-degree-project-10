@@ -25,6 +25,11 @@ a.button, input[type=submit] {
 form a.button, input[type=submit] {
   margin-left: 140px;
 }
+
+input.search {
+  margin-left: 24px;
+}
+
 input[type=submit] {
   border: 0;
 }
